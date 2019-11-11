@@ -653,34 +653,52 @@ bool HeightMap::RayTriangle(const XMVECTOR& vert0, const XMVECTOR& vert1, const 
 	 // This can be done using |COLNORM| (which remember is also [ A,B,C ] ), the plane equation and any point on the plane
 	 // |COLNORM| dot |ANYVERT| = -D
 
-	 return false; // remove this to start
+	 //return false; // remove this to start
 
 	 // Step 1: Calculate |COLNORM| 
+
+	 colNormN =  XMVector3Cross((vert0 - vert1), (vert2 - vert1));
+
+	 colNormN = XMVector3Normalize(colNormN);
+
 	 // Note that the variable colNormN is passed through by reference as part of the function parameters so you can calculate and return it!
 	 // Next line is useful debug code to stop collision with the top of the inverted pyramid (which has a normal facing straight up). 
-	 // if( abs(colNormN.y)>0.99f ) return false;
+	 XMFLOAT3 FloatTest;
+	 XMStoreFloat3(&FloatTest, colNormN);
+	 if( abs(FloatTest.y)>0.99f ) return false;
 	 // Remember to remove it once you have implemented part 2 below...
 
 	 // ...
 
 	 // Step 2: Use |COLNORM| and any vertex on the triangle to calculate D
-
+	 XMVECTOR D = -XMVector3Dot(colNormN, XMVector3Normalize(vert0));
 	 // ...
 	 
 	 // Step 3: Calculate the demoninator of the COLDIST equation: (|COLNORM| dot |RAYDIR|) and "early out" (return false) if it is 0
-
+	 XMVECTOR demoninatorVector = XMVector3Dot(colNormN, rayDir);
+	 float demoninator;
+	 XMStoreFloat(&demoninator, demoninatorVector);
+	 if (demoninator == 0) return false;
 	 // ...
 
 	 // Step 4: Calculate the numerator of the COLDIST equation: -(D+(|COLNORM| dot RAYPOS))
 
+	 XMVECTOR numeratorVector = -(D + XMVector3Dot(colNormN, rayPos));
+	 float numerator;
+	 XMStoreFloat(&numerator, numeratorVector);
 	 // ...
 
 	 // Step 5: Calculate COLDIST and "early out" again if COLDIST is behind RAYDIR
-
+	 XMVECTOR normalisedColNormAndStartCol = XMVector3Dot(colNormN, XMVector3Normalize(rayPos));
+	 float normalisedColNormAndStartColFloat;
+	 XMStoreFloat(&normalisedColNormAndStartColFloat, normalisedColNormAndStartCol);
+	 colDist = numerator / normalisedColNormAndStartColFloat;
 	 // ...
 
-	 // Step 6: Use COLDIST to calculate COLPOS
+	 if (colDist < 0) return false;
 
+	 // Step 6: Use COLDIST to calculate COLPOS
+	 colPos = rayPos + (colDist * XMVector3Normalize(rayDir));
 	 // ...
 
 	 // Next two lines are useful debug code to stop collision with anywhere beneath the pyramid. 
