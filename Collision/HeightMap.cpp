@@ -665,17 +665,17 @@ bool HeightMap::RayTriangle(const XMVECTOR& vert0, const XMVECTOR& vert1, const 
 	 // Next line is useful debug code to stop collision with the top of the inverted pyramid (which has a normal facing straight up). 
 	 XMFLOAT3 FloatTest;
 	 XMStoreFloat3(&FloatTest, colNormN);
-	 if( abs(FloatTest.y)>0.99f ) return false;
+	 //if( abs(FloatTest.y)>0.99f ) return false;
 	 // Remember to remove it once you have implemented part 2 below...
 
 	 // ...
 
 	 // Step 2: Use |COLNORM| and any vertex on the triangle to calculate D
-	 XMVECTOR D = -XMVector3Dot(colNormN, XMVector3Normalize(vert0));
+	 XMVECTOR D = -XMVector3Dot(colNormN, vert0);
 	 // ...
 	 
 	 // Step 3: Calculate the demoninator of the COLDIST equation: (|COLNORM| dot |RAYDIR|) and "early out" (return false) if it is 0
-	 XMVECTOR demoninatorVector = XMVector3Dot(colNormN, rayDir);
+	 XMVECTOR demoninatorVector = XMVector3Dot(colNormN, XMVector3Normalize(rayDir));
 	 float demoninator;
 	 XMStoreFloat(&demoninator, demoninatorVector);
 	 if (demoninator == 0) return false;
@@ -689,10 +689,7 @@ bool HeightMap::RayTriangle(const XMVECTOR& vert0, const XMVECTOR& vert1, const 
 	 // ...
 
 	 // Step 5: Calculate COLDIST and "early out" again if COLDIST is behind RAYDIR
-	 XMVECTOR normalisedColNormAndStartCol = XMVector3Dot(colNormN, XMVector3Normalize(rayPos));
-	 float normalisedColNormAndStartColFloat;
-	 XMStoreFloat(&normalisedColNormAndStartColFloat, normalisedColNormAndStartCol);
-	 colDist = numerator / normalisedColNormAndStartColFloat;
+	 colDist = numerator / demoninator;
 	 // ...
 
 	 if (colDist < 0) return false;
@@ -713,19 +710,23 @@ bool HeightMap::RayTriangle(const XMVECTOR& vert0, const XMVECTOR& vert1, const 
 	 // 3) RAYPOS, VERT2, VERT0
 
 	 // Move the ray backwards by a tiny bit (one unit) in case the ray is already on the plane
-
+	 XMVECTOR rayPosMovedBack = rayPos - rayDir;
 	 // ...
 
-	 // Step 1: Test against plane 1 and return false if behind plane
+	 bool intersect1 = PointPlane(rayPosMovedBack, vert0, vert1, colPos);
+	 bool intersect2 = PointPlane(rayPosMovedBack, vert1, vert2, colPos);
+	 bool intersect3 = PointPlane(rayPosMovedBack, vert2, vert0, colPos);
 
+	 // Step 1: Test against plane 1 and return false if behind plane
+	 if (!intersect1) return false;
 	 // ...
 
 	 // Step 2: Test against plane 2 and return false if behind plane
-
+	 if (!intersect2) return false;
 	 // ...
 
 	 // Step 3: Test against plane 3 and return false if behind plane
-
+	 if (!intersect3) return false;
 	 // ...
 
 	 // Step 4: Return true! (on triangle)
@@ -753,19 +754,23 @@ bool HeightMap::PointPlane(const XMVECTOR& vert0, const XMVECTOR& vert1, const X
 	 float sD, sNumer;
 
 	 // Step 1: Calculate PNORM
+	 XMVECTOR PNORM = XMVector3Cross((vert0 - vert1), (vert2 - vert1));
 
+	 PNORM = XMVector3Normalize(PNORM);
 	 // ...
 	
 	 // Step 2: Calculate D
-
+	 XMVECTOR D = -XMVector3Dot(PNORM, vert0);
 	 // ...
 	 
 	 // Step 3: Calculate full equation
-
+	 XMVECTOR full = (XMVector3Dot(PNORM, pointPos) - XMVector3Dot(PNORM, vert0));
+	 float dir;
+	 XMStoreFloat(&dir, full);
 	 // ...
 
 	 // Step 4: Return false if < 0 (behind plane)
-
+	 if (dir < 0) return false;
 	 // ...
 
 	 // Step 5: Return true! (in front of plane)
