@@ -713,20 +713,16 @@ bool HeightMap::RayTriangle(const XMVECTOR& vert0, const XMVECTOR& vert1, const 
 	 XMVECTOR rayPosMovedBack = rayPos - rayDir;
 	 // ...
 
-	 bool intersect1 = PointPlane(rayPosMovedBack, vert0, vert1, colPos);
-	 bool intersect2 = PointPlane(rayPosMovedBack, vert1, vert2, colPos);
-	 bool intersect3 = PointPlane(rayPosMovedBack, vert2, vert0, colPos);
-
 	 // Step 1: Test against plane 1 and return false if behind plane
-	 if (!intersect1) return false;
+	 if (!PointPlane(rayPosMovedBack, vert0, vert1, colPos)) return false;
 	 // ...
 
 	 // Step 2: Test against plane 2 and return false if behind plane
-	 if (!intersect2) return false;
+	 if (!PointPlane(rayPosMovedBack, vert1, vert2, colPos)) return false;
 	 // ...
 
 	 // Step 3: Test against plane 3 and return false if behind plane
-	 if (!intersect3) return false;
+	 if (!PointPlane(rayPosMovedBack, vert2, vert0, colPos)) return false;
 	 // ...
 
 	 // Step 4: Return true! (on triangle)
